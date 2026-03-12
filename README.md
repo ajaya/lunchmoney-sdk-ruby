@@ -107,6 +107,27 @@ end
 
 Get your access token from [Lunch Money Developer Settings](https://my.lunchmoney.app/developers).
 
+## Logging
+
+By default, logging is silent. Configure log level and output destination:
+
+```ruby
+LunchMoney.configure do |config|
+  config.log_level = :info            # :debug, :info, :warn, :error, :fatal
+  config.log_output = $stderr         # $stdout, $stderr, or a file path
+end
+```
+
+Setting `log_level` to `:debug` enables verbose HTTP request/response logging (equivalent to the legacy `debugging = true` flag).
+
+You can also provide your own logger instance:
+
+```ruby
+LunchMoney.configure do |config|
+  config.logger = Rails.logger        # any Logger-compatible object
+end
+```
+
 ## Development
 
 ```sh

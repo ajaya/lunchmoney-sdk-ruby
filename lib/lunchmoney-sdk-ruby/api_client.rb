@@ -100,7 +100,7 @@ module LunchMoney
       if %w[POST PATCH PUT DELETE].include?(http_method)
         body_params = build_request_body(header_params, form_params, opts[:body])
         if config.debugging
-          config.logger.debug "HTTP request body param ~BEGIN~\n#{req_body}\n~END~\n"
+          config.logger.debug "HTTP request body param ~BEGIN~\n#{body_params}\n~END~\n"
         end
       end
       req_opts = {
@@ -364,7 +364,7 @@ module LunchMoney
       when :pipes
         param.join('|')
       when :multi
-        # return the array directly as typhoeus will handle it as expected
+        # return the array directly as httpx will handle it as expected
         param
       else
         fail "unknown collection format: #{collection_format.inspect}"

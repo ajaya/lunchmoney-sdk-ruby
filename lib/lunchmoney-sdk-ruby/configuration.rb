@@ -72,12 +72,13 @@ module LunchMoney
     # Default to false.
     attr_accessor :return_binary_data
 
-    # Set this to enable/disable debugging. When enabled (set to true), HTTP request/response
-    # details will be logged with `logger.debug` (see the `logger` attribute).
-    # Default to false.
+    # Returns whether debugging is enabled. True when `debugging` is explicitly set,
+    # or when `log_level` is `:debug`.
     #
     # @return [true, false]
-    attr_accessor :debugging
+    def debugging
+      @debugging || @log_level == :debug
+    end
 
     # Set this to ignore operation servers for the API client. This is useful when you need to
     # send requests to a different server than the one specified in the OpenAPI document.
@@ -87,11 +88,19 @@ module LunchMoney
     # @return [true, false]
     attr_accessor :ignore_operation_servers
 
-    # Defines the logger used for debugging.
-    # Default to `Rails.logger` (when in Rails) or logging to STDOUT.
+    # Configurable log level. Accepts :debug, :info, :warn, :error, :fatal, or nil.
+    # Setting to :debug also enables the `debugging` flag.
+    # Default: nil (logging disabled unless `debugging` is set).
     #
-    # @return [#debug]
-    attr_accessor :logger
+    # @return [Symbol, nil]
+    attr_reader :log_level
+
+    # Configurable log output destination.
+    # Accepts an IO object ($stdout, $stderr), a String file path, or nil.
+    # Default: $stdout
+    #
+    # @return [IO, String, nil]
+    attr_reader :log_output
 
     # Defines the temporary folder to store downloaded files
     # (for API endpoints that have file response).
@@ -145,7 +154,10 @@ module LunchMoney
       @ignore_operation_servers = false
       @inject_format = false
       @force_ending_format = false
-      @logger = defined?(Rails) ? Rails.logger : Logger.new(STDOUT)
+      @log_level = nil
+      @log_output = nil
+      @user_provided_logger = nil
+      @custom_logger = nil
 
       yield(self) if block_given?
     end
@@ -284,6 +296,36 @@ module LunchMoney
     end
 
 
+    def debugging=(value)
+      @debugging = value
+      @custom_logger = nil
+    end
+
+    def log_level=(level)
+      @log_level = level
+      @custom_logger = nil
+    end
+
+    def log_output=(output)
+      @log_output = output
+      @custom_logger = nil
+    end
+
+    # Sets a custom logger, overriding log_level and log_output.
+    # @param [#debug] logger a Logger-compatible instance
+    def logger=(logger)
+      @user_provided_logger = logger
+    end
+
+    # Returns the logger instance. If a custom logger was set via `logger=`, returns that.
+    # Otherwise builds an internal logger based on `log_level` and `log_output`.
+    # @return [Logger]
+    def logger
+      return @user_provided_logger if @user_provided_logger
+
+      @custom_logger ||= build_logger
+    end
+
     # Configure Httpx session directly.
     #
     # ```
@@ -302,6 +344,33 @@ module LunchMoney
       @configure_session_blocks.reduce(session) do |configured_sess, block|
         block.call(configured_sess)
       end
+    end
+
+    private
+
+    LOG_LEVEL_MAP = {
+      debug: Logger::DEBUG,
+      info:  Logger::INFO,
+      warn:  Logger::WARN,
+      error: Logger::ERROR,
+      fatal: Logger::FATAL,
+    }.freeze
+
+    def build_logger
+      output = @log_output || $stdout
+      new_logger = Logger.new(output)
+
+      new_logger.level = if @log_level
+        LOG_LEVEL_MAP.fetch(@log_level) do
+          raise ArgumentError, "Invalid log_level: #{@log_level.inspect}. Use one of: #{LOG_LEVEL_MAP.keys.join(', ')}"
+        end
+      elsif @debugging
+        Logger::DEBUG
+      else
+        Logger::FATAL + 1 # effectively silent
+      end
+
+      new_logger
     end
   end
 end

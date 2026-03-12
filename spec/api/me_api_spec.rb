@@ -29,17 +29,9 @@ describe LunchMoney::MeApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/me/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns a UserObject' do
       result = api_instance.get_me
@@ -61,7 +53,7 @@ describe LunchMoney::MeApi do
       data, status, headers = api_instance.get_me_with_http_info
       expect(data).to be_instance_of(LunchMoney::UserObject)
       expect(status).to eq(200)
-      expect(headers).to respond_to(:[]) # Typhoeus::Response::Header
+      expect(headers).to respond_to(:[]) # Hash
     end
   end
 end

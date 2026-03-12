@@ -44,17 +44,9 @@ describe LunchMoney::PlaidAccountsApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/plaid_accounts/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns a GetAllPlaidAccounts200Response' do
       result = api_instance.get_all_plaid_accounts
@@ -104,17 +96,9 @@ describe LunchMoney::PlaidAccountsApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/plaid_accounts\/25/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns a PlaidAccountObject' do
       result = api_instance.get_plaid_account_by_id(25)
@@ -141,17 +125,9 @@ describe LunchMoney::PlaidAccountsApi do
 
   describe '#trigger_plaid_account_fetch' do
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 202,
-        body: '',
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/plaid_accounts\/fetch/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 202, body: '', headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns nil' do
       result = api_instance.trigger_plaid_account_fetch

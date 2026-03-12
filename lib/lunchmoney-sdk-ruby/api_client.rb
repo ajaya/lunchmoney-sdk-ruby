@@ -15,7 +15,8 @@ require 'json'
 require 'logger'
 require 'tempfile'
 require 'time'
-require 'typhoeus'
+require 'httpx'
+require 'net/http/status'
 
 
 module LunchMoney
@@ -46,40 +47,36 @@ module LunchMoney
     # Call an API with given options.
     #
     # @return [Array<(Object, Integer, Hash)>] an array of 3 elements:
-    #   the data deserialized from response body (may be a Tempfile or nil), response status code and response headers.
+    #   the data deserialized from response body (could be nil), response status code and response headers.
     def call_api(http_method, path, opts = {})
-      request = build_request(http_method, path, opts)
-      tempfile = nil
-      (download_file(request) { tempfile = _1 }) if opts[:return_type] == 'File'
-      response = request.run
+      begin
+        response = build_request(http_method.to_s, path, opts)
 
-      if @config.debugging
-        @config.logger.debug "HTTP response body ~BEGIN~\n#{response.body}\n~END~\n"
-      end
-
-      unless response.success?
-        if response.timed_out?
-          fail ApiError.new('Connection timed out')
-        elsif response.code == 0
-          # Errors from libcurl will be made visible here
-          fail ApiError.new(:code => 0,
-                            :message => response.return_message)
-        else
-          fail ApiError.new(:code => response.code,
-                            :response_headers => response.headers,
-                            :response_body => response.body),
-               response.status_message
+        if config.debugging
+          config.logger.debug "HTTP response body ~BEGIN~\n#{response.body}\n~END~\n"
         end
+
+        response.raise_for_status
+
+      rescue HTTPX::HTTPError
+          fail ApiError.new(code: response.status,
+                response_headers: response.headers.to_h,
+                response_body: response.body.to_s),
+                Net::HTTP::STATUS_CODES.fetch(response.status, "HTTP Error (#{response.status})")
+      rescue HTTPX::TimeoutError
+        fail ApiError.new('Connection timed out')
+      rescue HTTPX::ConnectionError, HTTPX::ResolveError
+        fail ApiError.new('Connection failed')
       end
 
       if opts[:return_type] == 'File'
-        data = tempfile
+        data = deserialize_file(response)
       elsif opts[:return_type]
         data = deserialize(response, opts[:return_type])
       else
         data = nil
       end
-      return data, response.code, response.headers
+      return data, response.status, response.headers.to_h
     end
 
     # Builds the HTTP request
@@ -90,47 +87,28 @@ module LunchMoney
     # @option opts [Hash] :query_params Query parameters
     # @option opts [Hash] :form_params Query parameters
     # @option opts [Object] :body HTTP body (JSON/XML)
-    # @return [Typhoeus::Request] A Typhoeus Request
+    # @return [HTTPX::Request] A Request object
     def build_request(http_method, path, opts = {})
       url = build_request_url(path, opts)
-      http_method = http_method.to_sym.downcase
 
       header_params = @default_headers.merge(opts[:header_params] || {})
       query_params = opts[:query_params] || {}
       form_params = opts[:form_params] || {}
-      follow_location = opts[:follow_location] || true
 
       update_params_for_auth! header_params, query_params, opts[:auth_names]
 
-      # set ssl_verifyhosts option based on @config.verify_ssl_host (true/false)
-      _verify_ssl_host = @config.verify_ssl_host ? 2 : 0
-
-      req_opts = {
-        :method => http_method,
-        :headers => header_params,
-        :params => query_params,
-        :params_encoding => @config.params_encoding,
-        :timeout => @config.timeout,
-        :ssl_verifypeer => @config.verify_ssl,
-        :ssl_verifyhost => _verify_ssl_host,
-        :sslcert => @config.cert_file,
-        :sslkey => @config.key_file,
-        :verbose => @config.debugging,
-        :followlocation => follow_location
-      }
-
-      # set custom cert, if provided
-      req_opts[:cainfo] = @config.ssl_ca_cert if @config.ssl_ca_cert
-
-      if [:post, :patch, :put, :delete].include?(http_method)
-        req_body = build_request_body(header_params, form_params, opts[:body])
-        req_opts.update :body => req_body
-        if @config.debugging
-          @config.logger.debug "HTTP request body param ~BEGIN~\n#{req_body}\n~END~\n"
+      if %w[POST PATCH PUT DELETE].include?(http_method)
+        body_params = build_request_body(header_params, form_params, opts[:body])
+        if config.debugging
+          config.logger.debug "HTTP request body param ~BEGIN~\n#{req_body}\n~END~\n"
         end
       end
-
-      Typhoeus::Request.new(url, req_opts)
+      req_opts = {
+        :headers => HTTPX::Headers.new(header_params)
+      }
+      req_opts.merge!(body_params) if body_params
+      req_opts[:params] = query_params if query_params && !query_params.empty?
+      session.request(http_method, url, **req_opts)
     end
 
     # Builds the HTTP request body
@@ -138,43 +116,25 @@ module LunchMoney
     # @param [Hash] header_params Header parameters
     # @param [Hash] form_params Query parameters
     # @param [Object] body HTTP body (JSON/XML)
-    # @return [String] HTTP body data in the form of string
+    # @return [Hash{Symbol => Object}] body options as HTTPX handles them
     def build_request_body(header_params, form_params, body)
       # http form
       if header_params['Content-Type'] == 'application/x-www-form-urlencoded' ||
-          header_params['Content-Type'] == 'multipart/form-data'
-        data = {}
-        form_params.each do |key, value|
-          case value
-          when ::File, ::Array, nil
-            # let typhoeus handle File, Array and nil parameters
-            data[key] = value
-          else
-            data[key] = value.to_s
-          end
-        end
+         header_params['Content-Type'] == 'multipart/form-data'
+        header_params.delete('Content-Type') # httpx takes care of this
+        { form: form_params }
       elsif body
-        data = body.is_a?(String) ? body : body.to_json
-      else
-        data = nil
+        body.is_a?(String) ? { body: body } : { json: body }
       end
-      data
     end
 
-    # Save response body into a file in (the defined) temporary folder, using the filename
-    # from the "Content-Disposition" header if provided, otherwise a random filename.
-    # The response body is written to the file in chunks in order to handle files which
-    # size is larger than maximum Ruby String or even larger than the maximum memory a Ruby
-    # process can use.
-    #
-    # @see Configuration#temp_folder_path
-    #
-    # @return [Tempfile] the tempfile generated
-    def download_file(request)
-      tempfile = nil
-      encoding = nil
-      request.on_headers do |response|
-        content_disposition = response.headers['Content-Disposition']
+    def deserialize_file(response)
+      body = response.body
+      if @config.return_binary_data == true
+        # TODO: force response encoding
+        body.to_s
+      else
+        content_disposition = response.headers['content-disposition']
         if content_disposition && content_disposition =~ /filename=/i
           filename = content_disposition[/filename=['"]?([^'"\s]+)['"]?/, 1]
           prefix = sanitize_filename(filename)
@@ -184,22 +144,39 @@ module LunchMoney
         prefix = prefix + '-' unless prefix.end_with?('-')
         encoding = response.body.encoding
         tempfile = Tempfile.open(prefix, @config.temp_folder_path, encoding: encoding)
-      end
-      request.on_body do |chunk|
-        chunk.force_encoding(encoding)
-        tempfile.write(chunk)
-      end
-      request.on_complete do
-        if !tempfile
-          fail ApiError.new("Failed to create the tempfile based on the HTTP response from the server: #{request.inspect}")
-        end
+        response.copy_to(tempfile)
         tempfile.close
         @config.logger.info "Temp file written to #{tempfile.path}, please copy the file to a proper folder "\
                             "with e.g. `FileUtils.cp(tempfile.path, '/new/file/path')` otherwise the temp file "\
                             "will be deleted automatically with GC. It's also recommended to delete the temp file "\
                             "explicitly with `tempfile.delete`"
-        yield tempfile if block_given?
+
+        tempfile
       end
+    end
+
+    def session
+      return @session if defined?(@session)
+
+      session = HTTPX.with(
+        ssl: @config.ssl,
+        timeout: ({ request_timeout: @config.timeout } if @config.timeout && @config.timeout.positive?),
+        origin: "#{@config.scheme}://#{@config.host}",
+        base_path: (@config.base_path.sub(/\/+\z/, '') if @config.base_path)
+      )
+
+      if @config.proxy
+        session = session.plugin(:proxy, proxy: @config.proxy)
+      end
+
+      if @config.username && @config.password
+        session = session.plugin(:basic_auth).basic_auth(@config.username, @config.password)
+      end
+
+      session = @config.configure(session)
+
+      @session = session
+
     end
 
     # Check if the given MIME is a JSON MIME.
@@ -315,8 +292,7 @@ module LunchMoney
         case auth_setting[:in]
         when 'header' then header_params[auth_setting[:key]] = auth_setting[:value]
         when 'query'  then query_params[auth_setting[:key]] = auth_setting[:value]
-        when 'cookie' then header_params['Cookie'] = "#{auth_setting[:key]}=#{auth_setting[:value]}"
-        else fail ArgumentError, 'Authentication token must be in `query`, `header`, or `cookie`'
+        else fail ArgumentError, 'Authentication token must be in `query` or `header`'
         end
       end
     end

@@ -26,17 +26,9 @@ describe LunchMoney::SummaryApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/summary/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns a SummaryResponseObject' do
       result = api_instance.get_budget_summary('2025-01-01', '2025-01-31')

@@ -25,17 +25,9 @@ describe LunchMoney::BudgetsApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/budgets\/settings/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'responds to get_budget_settings' do
       expect(api_instance).to respond_to(:get_budget_settings)
@@ -68,17 +60,9 @@ describe LunchMoney::BudgetsApi do
 
   describe '#delete_budget' do
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 204,
-        body: '',
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/budgets/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 204, body: '', headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'responds to delete_budget' do
       expect(api_instance).to respond_to(:delete_budget)
@@ -120,17 +104,9 @@ describe LunchMoney::BudgetsApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/budgets/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'responds to upsert_budget' do
       expect(api_instance).to respond_to(:upsert_budget)

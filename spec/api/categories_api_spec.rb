@@ -37,17 +37,9 @@ describe LunchMoney::CategoriesApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/categories/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns a GetAllCategories200Response' do
       result = api_instance.get_all_categories
@@ -93,17 +85,9 @@ describe LunchMoney::CategoriesApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/categories\/42/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns a CategoryObject' do
       result = api_instance.get_category_by_id(42)
@@ -156,17 +140,9 @@ describe LunchMoney::CategoriesApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/categories/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns a CategoryObject' do
       result = api_instance.create_category(request_body)
@@ -215,17 +191,9 @@ describe LunchMoney::CategoriesApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/categories\/42/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns a CategoryObject' do
       result = api_instance.update_category(42, request_body)
@@ -251,17 +219,9 @@ describe LunchMoney::CategoriesApi do
 
   describe '#delete_category' do
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 204,
-        body: '',
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/categories\/42/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 204, body: '', headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns nil' do
       result = api_instance.delete_category(42)

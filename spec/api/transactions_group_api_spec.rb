@@ -39,17 +39,9 @@ describe LunchMoney::TransactionsGroupApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/transactions\/group/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns a TransactionObject' do
       result = api_instance.group_transactions({ transaction_ids: [100, 101] })
@@ -76,17 +68,9 @@ describe LunchMoney::TransactionsGroupApi do
     let(:response_body) { '' }
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 204,
-        body: '',
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/transactions\/group\/\d+/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 204, body: '', headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns nil for a DELETE request' do
       result = api_instance.ungroup_transactions(300)

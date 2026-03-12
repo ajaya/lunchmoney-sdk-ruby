@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'lunchmoney-sdk-ruby'
+require_relative 'support/httpx_stub_helper'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|

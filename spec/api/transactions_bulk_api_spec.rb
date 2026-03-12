@@ -44,17 +44,9 @@ describe LunchMoney::TransactionsBulkApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/transactions/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns a GetAllTransactions200Response' do
       result = api_instance.get_all_transactions
@@ -118,17 +110,9 @@ describe LunchMoney::TransactionsBulkApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/transactions/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns an UpdateTransactions200Response via debug_return_type override' do
       # InsertTransactionsResponseObject model is not generated; use compatible type
@@ -187,17 +171,9 @@ describe LunchMoney::TransactionsBulkApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/transactions/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns an UpdateTransactions200Response' do
       result = api_instance.update_transactions(request_body)
@@ -229,17 +205,9 @@ describe LunchMoney::TransactionsBulkApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 204,
-        body: '',
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/transactions/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 204, body: '', headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns nil' do
       result = api_instance.delete_transactions(request_body)

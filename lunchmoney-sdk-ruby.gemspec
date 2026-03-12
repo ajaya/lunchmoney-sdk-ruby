@@ -27,7 +27,8 @@ Gem::Specification.new do |s|
     "rubygems_mfa_required" => "true"
   }
 
-  s.add_runtime_dependency 'typhoeus', '~> 1.6'
+  s.add_runtime_dependency 'httpx', '~> 1.0', '>= 1.0.0'
+  s.add_runtime_dependency 'logger'
 
   s.add_development_dependency 'rake', '~> 13.3'
   s.add_development_dependency 'rspec', '~> 3.13'

@@ -39,17 +39,9 @@ describe LunchMoney::TransactionsSplitApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/transactions\/split\/\d+/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns a TransactionObject' do
       result = api_instance.split_transaction(400, { amounts: ['-60.00', '-40.00'] })
@@ -74,17 +66,9 @@ describe LunchMoney::TransactionsSplitApi do
 
   describe '#unsplit_transaction' do
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 204,
-        body: '',
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/transactions\/split\/\d+/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 204, body: '', headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns nil for a DELETE request' do
       result = api_instance.unsplit_transaction(400)

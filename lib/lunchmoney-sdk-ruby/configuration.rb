@@ -110,46 +110,16 @@ module LunchMoney
     attr_accessor :client_side_validation
 
     ### TLS/SSL setting
-    # Set this to false to skip verifying SSL certificate when calling API from https server.
-    # Default to true.
+    # You can use this to customize SSL Context settings (see https://ruby-doc.org/stdlib-2.5.1/libdoc/openssl/rdoc/OpenSSL/SSL/SSLContext.html
+    # to know which ones).
     #
-    # @note Do NOT set it to false in production code, otherwise you would face multiple types of cryptographic attacks.
-    #
-    # @return [true, false]
-    attr_accessor :verify_ssl
+    # @return [Hash{Symbol => Object}, OpenSSL::SSL::SSLContext, nil]
+    attr_accessor :ssl
 
-    ### TLS/SSL setting
-    # Set this to false to skip verifying SSL host name
-    # Default to true.
-    #
-    # @note Do NOT set it to false in production code, otherwise you would face multiple types of cryptographic attacks.
-    #
-    # @return [true, false]
-    attr_accessor :verify_ssl_host
-
-    ### TLS/SSL setting
-    # Set this to customize the certificate file to verify the peer.
-    #
-    # @return [String] the path to the certificate file
-    #
-    # @see The `cainfo` option of Typhoeus, `--cert` option of libcurl. Related source code:
-    # https://github.com/typhoeus/typhoeus/blob/master/lib/typhoeus/easy_factory.rb#L145
-    attr_accessor :ssl_ca_cert
-
-    ### TLS/SSL setting
-    # Client certificate file (for client certificate)
-    attr_accessor :cert_file
-
-    ### TLS/SSL setting
-    # Client private key file (for client certificate)
-    attr_accessor :key_file
-
-    # Set this to customize parameters encoding of array parameter with multi collectionFormat.
-    # Default to nil.
-    #
-    # @see The params_encoding option of Ethon. Related source code:
-    # https://github.com/typhoeus/ethon/blob/master/lib/ethon/easy/queryable.rb#L96
-    attr_accessor :params_encoding
+    ### Proxy setting
+    # HTTP Proxy settings (see https://honeyryderchuck.gitlab.io/httpx/wiki/Proxy#options)
+    # @return [Hash{Symbol => Object}, nil]
+    attr_accessor :proxy
 
 
     attr_accessor :inject_format
@@ -167,12 +137,10 @@ module LunchMoney
       @api_key = {}
       @api_key_prefix = {}
       @client_side_validation = true
-      @verify_ssl = true
-      @verify_ssl_host = true
-      @cert_file = nil
-      @key_file = nil
-      @timeout = 0
-      @params_encoding = nil
+      @ssl = nil
+      @proxy = nil
+      @timeout = 60
+      @configure_session_blocks = []
       @debugging = false
       @ignore_operation_servers = false
       @inject_format = false
@@ -255,7 +223,7 @@ module LunchMoney
         'cookieAuth' =>
           {
             type: 'api_key',
-            in: 'cookie',
+            in: ,
             key: '_lm_access_token',
             value: api_key_with_prefix('_lm_access_token')
           },
@@ -316,5 +284,24 @@ module LunchMoney
     end
 
 
+    # Configure Httpx session directly.
+    #
+    # ```
+    # c.configure_session do |http|
+    #   http.plugin(:follow_redirects).with(debug: STDOUT, debug_level: 1)
+    # end
+    # ```
+    #
+    # @param block [Proc] `#call`able object that takes one arg, the connection
+    def configure_session(&block)
+      @configure_session_blocks << block
+    end
+
+
+    def configure(session)
+      @configure_session_blocks.reduce(session) do |configured_sess, block|
+        block.call(configured_sess)
+      end
+    end
   end
 end

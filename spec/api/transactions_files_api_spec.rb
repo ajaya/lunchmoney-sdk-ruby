@@ -24,17 +24,9 @@ describe LunchMoney::TransactionsFilesApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/transactions\/attachments\/\d+/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns a GetTransactionAttachmentUrl200Response' do
       result = api_instance.get_transaction_attachment_url(50)
@@ -69,17 +61,9 @@ describe LunchMoney::TransactionsFilesApi do
     end
 
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 200,
-        body: response_body,
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/transactions\/\d+\/attachments/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 200, body: response_body, headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns a TransactionAttachmentObject' do
       file = Tempfile.new(['receipt', '.pdf'])
@@ -125,17 +109,9 @@ describe LunchMoney::TransactionsFilesApi do
 
   describe '#delete_transaction_attachment' do
     before do
-      stub_response = Typhoeus::Response.new(
-        code: 204,
-        body: '',
-        headers: { 'Content-Type' => 'application/json' }
-      )
-      Typhoeus.stub(/\/transactions\/attachments\/\d+/).and_return(stub_response)
+      stub_httpx_response(api_client, status: 204, body: '', headers: { 'Content-Type' => 'application/json' })
     end
 
-    after do
-      Typhoeus::Expectation.clear
-    end
 
     it 'returns nil' do
       result = api_instance.delete_transaction_attachment(75)

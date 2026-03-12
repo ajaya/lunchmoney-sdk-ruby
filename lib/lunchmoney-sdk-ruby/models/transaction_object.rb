@@ -414,22 +414,6 @@ module LunchMoney
         invalid_properties.push('invalid value for "payee", payee cannot be nil.')
       end
 
-      if @payee.to_s.length > 140
-        invalid_properties.push('invalid value for "payee", the character length must be smaller than or equal to 140.')
-      end
-
-      if @payee.to_s.length < 0
-        invalid_properties.push('invalid value for "payee", the character length must be greater than or equal to 0.')
-      end
-
-      if !@original_name.nil? && @original_name.to_s.length > 140
-        invalid_properties.push('invalid value for "original_name", the character length must be smaller than or equal to 140.')
-      end
-
-      if !@original_name.nil? && @original_name.to_s.length < 0
-        invalid_properties.push('invalid value for "original_name", the character length must be greater than or equal to 0.')
-      end
-
       if @external_id.to_s.length > 75
         invalid_properties.push('invalid value for "external_id", the character length must be smaller than or equal to 75.')
       end
@@ -483,10 +467,6 @@ module LunchMoney
       return false if @currency.nil?
       return false if @to_base.nil?
       return false if @payee.nil?
-      return false if @payee.to_s.length > 140
-      return false if @payee.to_s.length < 0
-      return false if !@original_name.nil? && @original_name.to_s.length > 140
-      return false if !@original_name.nil? && @original_name.to_s.length < 0
       return false if @external_id.to_s.length > 75
       return false if @external_id.to_s.length < 0
       return false if @tag_ids.nil?
@@ -561,27 +541,12 @@ module LunchMoney
         fail ArgumentError, 'payee cannot be nil'
       end
 
-      if payee.to_s.length > 140
-        fail ArgumentError, 'invalid value for "payee", the character length must be smaller than or equal to 140.'
-      end
-
-      if payee.to_s.length < 0
-        fail ArgumentError, 'invalid value for "payee", the character length must be greater than or equal to 0.'
-      end
-
       @payee = payee
     end
 
     # Custom attribute writer method with validation
     # @param [Object] original_name Value to be assigned
     def original_name=(original_name)
-      if !original_name.nil? && original_name.to_s.length > 140
-        fail ArgumentError, 'invalid value for "original_name", the character length must be smaller than or equal to 140.'
-      end
-
-      if !original_name.nil? && original_name.to_s.length < 0
-        fail ArgumentError, 'invalid value for "original_name", the character length must be greater than or equal to 0.'
-      end
 
       @original_name = original_name
     end

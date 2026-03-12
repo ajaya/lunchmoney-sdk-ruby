@@ -1,0 +1,12 @@
+generatorName: ruby
+inputSpec: openapi/lunchmoney-v2.json
+outputDir: .
+additionalProperties:
+  gemName: lunchmoney-sdk-ruby
+  moduleName: LunchMoney
+  gemVersion: "0.1.0"
+  gemAuthor: Ajaya Agrawalla
+  gemAuthorEmail: ajaya@clearstack.io
+  gemHomepage: https://github.com/ajaya/lunchmoney-sdk-ruby
+  gemSummary: Ruby SDK for the Lunch Money API v2
+  gemLicense: MIT

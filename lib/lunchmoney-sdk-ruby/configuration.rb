@@ -235,7 +235,7 @@ module LunchMoney
         'cookieAuth' =>
           {
             type: 'api_key',
-            in: ,
+            in: 'cookie',
             key: '_lm_access_token',
             value: api_key_with_prefix('_lm_access_token')
           },

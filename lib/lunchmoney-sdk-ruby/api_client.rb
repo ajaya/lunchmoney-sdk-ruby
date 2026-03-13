@@ -52,10 +52,6 @@ module LunchMoney
       begin
         response = build_request(http_method.to_s, path, opts)
 
-        if config.debugging
-          config.logger.debug "HTTP response body ~BEGIN~\n#{response.body}\n~END~\n"
-        end
-
         response.raise_for_status
 
       rescue HTTPX::HTTPError
@@ -99,9 +95,6 @@ module LunchMoney
 
       if %w[POST PATCH PUT DELETE].include?(http_method)
         body_params = build_request_body(header_params, form_params, opts[:body])
-        if config.debugging
-          config.logger.debug "HTTP request body param ~BEGIN~\n#{body_params}\n~END~\n"
-        end
       end
       req_opts = {
         :headers => HTTPX::Headers.new(header_params)
@@ -158,12 +151,13 @@ module LunchMoney
     def session
       return @session if defined?(@session)
 
-      session = HTTPX.with(
-        ssl: @config.ssl,
+      opts = {
         timeout: ({ request_timeout: @config.timeout } if @config.timeout && @config.timeout.positive?),
         origin: "#{@config.scheme}://#{@config.host}",
         base_path: (@config.base_path.sub(/\/+\z/, '') if @config.base_path)
-      )
+      }
+      opts[:ssl] = @config.ssl if @config.ssl
+      session = HTTPX.with(**opts)
 
       if @config.proxy
         session = session.plugin(:proxy, proxy: @config.proxy)
@@ -171,6 +165,22 @@ module LunchMoney
 
       if @config.username && @config.password
         session = session.plugin(:basic_auth).basic_auth(@config.username, @config.password)
+      end
+
+      if @config.debugging
+        logger = @config.logger
+        session = session.plugin(:callbacks)
+          .on_request_started do |request|
+            uri = request.uri
+            parts = [">> #{request.verb.to_s.upcase} #{uri.path}"]
+            parts << "   params: #{uri.query}" if uri.query && !uri.query.empty?
+            parts << "   body: #{request.body}" if request.body && !request.body.empty?
+            logger.debug(parts.join("\n"))
+          end
+          .on_response_completed do |request, response|
+            logger.debug("<< #{request.verb.to_s.upcase} #{request.uri.path} #{response.status}")
+            logger.debug("   body: #{response.body}") if response.body && !response.body.to_s.empty?
+          end
       end
 
       session = @config.configure(session)
@@ -292,7 +302,8 @@ module LunchMoney
         case auth_setting[:in]
         when 'header' then header_params[auth_setting[:key]] = auth_setting[:value]
         when 'query'  then query_params[auth_setting[:key]] = auth_setting[:value]
-        else fail ArgumentError, 'Authentication token must be in `query` or `header`'
+        when 'cookie' then header_params['Cookie'] = "#{auth_setting[:key]}=#{auth_setting[:value]}"
+        else fail ArgumentError, 'Authentication token must be in `query`, `header`, or `cookie`'
         end
       end
     end

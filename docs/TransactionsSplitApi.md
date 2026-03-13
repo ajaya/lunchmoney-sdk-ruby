@@ -34,7 +34,7 @@ end
 
 api_instance = LunchMoney::TransactionsSplitApi.new
 id = 2112150650 # Integer | ID of the transaction to spit
-split_transaction_request = LunchMoney::SplitTransactionRequest.new({child_transactions: [TODO]}) # SplitTransactionRequest | 
+split_transaction_request = LunchMoney::SplitTransactionRequest.new({child_transactions: [LunchMoney::SplitTransactionObject.new({amount: nil})]}) # SplitTransactionRequest | 
 
 begin
   # Split a transaction

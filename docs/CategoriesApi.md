@@ -36,7 +36,7 @@ LunchMoney.configure do |config|
 end
 
 api_instance = LunchMoney::CategoriesApi.new
-create_category_request_object = TODO # CreateCategoryRequestObject | 
+create_category_request_object = LunchMoney::CreateCategoryRequestObject.new({name: 'name_example'}) # CreateCategoryRequestObject | 
 
 begin
   # Create a new category or category group
@@ -340,7 +340,7 @@ end
 
 api_instance = LunchMoney::CategoriesApi.new
 id = 83 # Integer | ID of the category to update
-update_category_request_object = TODO # UpdateCategoryRequestObject | 
+update_category_request_object = LunchMoney::UpdateCategoryRequestObject.new # UpdateCategoryRequestObject | 
 
 begin
   # Update an existing category or category group

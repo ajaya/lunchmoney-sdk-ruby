@@ -33,7 +33,7 @@ module LunchMoney
     # The unique identifier of the associated recurring item that this transaction matched.
     attr_accessor :recurring_id
 
-    # Name of payee set by the user, the financial institution, or by  a matched recurring item. This will match the value  displayed in payee field on the transactions page in the GUI. 
+    # Name of payee set by the user, the financial institution, or by  a matched recurring item. This will match the value  displayed in payee field on the transactions page in the GUI.
     attr_accessor :payee
 
     # Original payee name from the source (financial institution, CSV, etc.). For Plaid transactions, this is the raw name before normalization. For manual/API transactions, this typically matches `payee`. May be null for older transactions.
@@ -54,10 +54,10 @@ module LunchMoney
     # A list of tag_ids for the tags associated with this transaction. If the transaction has no tags this will be an empty list.<br> Tag details can be obtained by passing the value of this attribute as the `ids` query parameter to the [List Tags](../operations/getTags) API
     attr_accessor :tag_ids
 
-    # Any transaction notes set by the user or by  a matched recurring item. This will match the value  displayed in notes field on the transactions page in the GUI. 
+    # Any transaction notes set by the user or by  a matched recurring item. This will match the value  displayed in notes field on the transactions page in the GUI.
     attr_accessor :notes
 
-    # Status of the transaction: - `reviewed`: User has reviewed the transaction, or it was automatically marked as reviewed due to reviewed recurring_item logic - `unreviewed`: User has not reviewed the transaction and it does not match any reviewed recurring_items. Note that any transactions  where `is_pending` is true will be returned with a status of unreviewed. - `delete_pending`: The synced account deleted this transaction after it was updated by the user. Requires manual intervention. 
+    # Status of the transaction: - `reviewed`: User has reviewed the transaction, or it was automatically marked as reviewed due to reviewed recurring_item logic - `unreviewed`: User has not reviewed the transaction and it does not match any reviewed recurring_items. Note that any transactions  where `is_pending` is true will be returned with a status of unreviewed. - `delete_pending`: The synced account deleted this transaction after it was updated by the user. Requires manual intervention.
     attr_accessor :status
 
     # Denotes if the transaction is pending (not posted). Applies only to transactions in synced accounts and will always be false for transactions associated with manual accounts.
@@ -93,7 +93,7 @@ module LunchMoney
     # A list of objects that describe any attachments to the Transactions. This is only present when the `include_files` query parameter is set to true.
     attr_accessor :files
 
-    # Source of the transaction: - `api`: Transaction was added by a call to the [POST /transactions](../operations/createTransaction) API - `csv`: Transaction was added via a CSV Import - `manual`: Transaction was created via the \"Add to Cash\" button on the Transactions page - `merge`: Transactions were originally in an account that was merged into another account - `plaid`: Transaction came from a Financial Institution synced via Plaid - `recurring`: Transaction was created from the Recurring page  - `rule`: Transaction was created by a rule to split a transaction - `split`: Transaction was created by splitting another transaction - `user`: This is a legacy value and is replaced by either csv or manual 
+    # Source of the transaction: - `api`: Transaction was added by a call to the [POST /transactions](../operations/createTransaction) API - `csv`: Transaction was added via a CSV Import - `manual`: Transaction was created via the \"Add to Cash\" button on the Transactions page - `merge`: Transactions were originally in an account that was merged into another account - `plaid`: Transaction came from a Financial Institution synced via Plaid - `recurring`: Transaction was created from the Recurring page  - `rule`: Transaction was created by a rule to split a transaction - `split`: Transaction was created by splitting another transaction - `user`: This is a legacy value and is replaced by either csv or manual
     attr_accessor :source
 
     class EnumAttributeValidator
@@ -414,6 +414,22 @@ module LunchMoney
         invalid_properties.push('invalid value for "payee", payee cannot be nil.')
       end
 
+      if @payee.to_s.length > 140
+        invalid_properties.push('invalid value for "payee", the character length must be smaller than or equal to 140.')
+      end
+
+      if @payee.to_s.length < 0
+        invalid_properties.push('invalid value for "payee", the character length must be greater than or equal to 0.')
+      end
+
+      if !@original_name.nil? && @original_name.to_s.length > 140
+        invalid_properties.push('invalid value for "original_name", the character length must be smaller than or equal to 140.')
+      end
+
+      if !@original_name.nil? && @original_name.to_s.length < 0
+        invalid_properties.push('invalid value for "original_name", the character length must be greater than or equal to 0.')
+      end
+
       if @external_id.to_s.length > 75
         invalid_properties.push('invalid value for "external_id", the character length must be smaller than or equal to 75.')
       end
@@ -467,6 +483,10 @@ module LunchMoney
       return false if @currency.nil?
       return false if @to_base.nil?
       return false if @payee.nil?
+      return false if @payee.to_s.length > 140
+      return false if @payee.to_s.length < 0
+      return false if !@original_name.nil? && @original_name.to_s.length > 140
+      return false if !@original_name.nil? && @original_name.to_s.length < 0
       return false if @external_id.to_s.length > 75
       return false if @external_id.to_s.length < 0
       return false if @tag_ids.nil?
@@ -541,12 +561,27 @@ module LunchMoney
         fail ArgumentError, 'payee cannot be nil'
       end
 
+      # if payee.to_s.length > 140
+      #   fail ArgumentError, 'invalid value for "payee", the character length must be smaller than or equal to 140.'
+      # end
+
+      # if payee.to_s.length < 0
+      #   fail ArgumentError, 'invalid value for "payee", the character length must be greater than or equal to 0.'
+      # end
+
       @payee = payee
     end
 
     # Custom attribute writer method with validation
     # @param [Object] original_name Value to be assigned
     def original_name=(original_name)
+      if !original_name.nil? && original_name.to_s.length > 140
+        fail ArgumentError, 'invalid value for "original_name", the character length must be smaller than or equal to 140.'
+      end
+
+      if !original_name.nil? && original_name.to_s.length < 0
+        fail ArgumentError, 'invalid value for "original_name", the character length must be greater than or equal to 0.'
+      end
 
       @original_name = original_name
     end
@@ -733,7 +768,5 @@ module LunchMoney
       end
       hash
     end
-
   end
-
 end

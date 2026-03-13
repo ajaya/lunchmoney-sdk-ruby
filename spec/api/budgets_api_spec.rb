@@ -37,10 +37,10 @@ describe LunchMoney::BudgetsApi do
       expect(api_instance).to respond_to(:get_budget_settings_with_http_info)
     end
 
-    it 'raises NameError during deserialization because BudgetSettingsResponseObject model does not exist' do
-      # The API method specifies return_type 'BudgetSettingsResponseObject' but
-      # no such model class exists in the LunchMoney module, so const_get raises NameError.
-      expect { api_instance.get_budget_settings }.to raise_error(NameError, /BudgetSettingsResponseObject/)
+    it 'deserializes to BudgetSettingsResponseObject' do
+      # The stub returns a minimal hash without required fields, so we expect
+      # an ArgumentError from the model's nil-check setters.
+      expect { api_instance.get_budget_settings }.to raise_error(ArgumentError)
     end
 
     it 'can make the HTTP call and returns raw data when return_type is overridden' do
@@ -112,11 +112,13 @@ describe LunchMoney::BudgetsApi do
       expect(api_instance).to respond_to(:upsert_budget)
     end
 
-    it 'raises NameError during deserialization because BudgetUpsertResponseObject model does not exist' do
-      # The API method specifies return_type 'BudgetUpsertResponseObject' but
-      # no such model class exists in the LunchMoney module, so const_get raises NameError.
+    it 'deserializes to BudgetUpsertResponseObject' do
       request_body = { category_id: 42, start_date: '2026-03-01', amount: '500.00' }
-      expect { api_instance.upsert_budget(request_body) }.to raise_error(NameError, /BudgetUpsertResponseObject/)
+      result = api_instance.upsert_budget(request_body)
+      expect(result).to be_a(LunchMoney::BudgetUpsertResponseObject)
+      expect(result.category_id).to eq(42)
+      expect(result.amount).to eq('500.00')
+      expect(result.currency).to eq('usd')
     end
 
     it 'can make the HTTP call and returns raw data when return_type is overridden' do

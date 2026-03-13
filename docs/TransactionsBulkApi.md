@@ -35,7 +35,7 @@ LunchMoney.configure do |config|
 end
 
 api_instance = LunchMoney::TransactionsBulkApi.new
-create_new_transactions_request = LunchMoney::CreateNewTransactionsRequest.new({transactions: [TODO]}) # CreateNewTransactionsRequest | 
+create_new_transactions_request = LunchMoney::CreateNewTransactionsRequest.new({transactions: [LunchMoney::InsertTransactionObject.new({date: Date.today, amount: nil})]}) # CreateNewTransactionsRequest | 
 
 begin
   # Insert one or more transactions.

@@ -12,6 +12,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SPEC_FILE="${1:-$REPO_ROOT/openapi/lunchmoney-v2.json}"
+GEM_VERSION="$(sed -n "s/.*VERSION = '\([^']*\)'.*/\1/p" "$REPO_ROOT/lib/lunchmoney-sdk-ruby/version.rb")"
 
 if [ ! -f "$SPEC_FILE" ]; then
   echo "ERROR: Spec file not found: $SPEC_FILE"
@@ -20,11 +21,16 @@ fi
 
 echo "Regenerating SDK from: $SPEC_FILE"
 
-openapi-generator-cli generate \
-  -i "$SPEC_FILE" \
+# Strip "x-internal": true so the generator produces models for all schemas
+PROCESSED_SPEC="$(mktemp)"
+trap 'rm -f "$PROCESSED_SPEC"' EXIT
+jq 'walk(if type == "object" then del(."x-internal") else . end)' "$SPEC_FILE" > "$PROCESSED_SPEC"
+
+openapi-generator generate \
+  -i "$PROCESSED_SPEC" \
   -g ruby \
   -o "$REPO_ROOT" \
-  --additional-properties=gemName=lunchmoney-sdk-ruby,moduleName=LunchMoney \
+  --additional-properties=gemName=lunchmoney-sdk-ruby,moduleName=LunchMoney,gemVersion=$GEM_VERSION,library=httpx \
   --skip-validate-spec
 
 echo "SDK regenerated successfully."

@@ -36,7 +36,7 @@ LunchMoney.configure do |config|
 end
 
 api_instance = LunchMoney::ManualAccountsApi.new
-create_manual_account_request_object = TODO # CreateManualAccountRequestObject | 
+create_manual_account_request_object = LunchMoney::CreateManualAccountRequestObject.new({name: 'My Savings Account', type: LunchMoney::AccountTypeEnum::CASH, balance: nil}) # CreateManualAccountRequestObject | 
 
 begin
   # Create a manual account
@@ -335,7 +335,7 @@ end
 
 api_instance = LunchMoney::ManualAccountsApi.new
 id = 119807 # Integer | ID of the manual account to update
-update_manual_account_request_object = TODO # UpdateManualAccountRequestObject | 
+update_manual_account_request_object = LunchMoney::UpdateManualAccountRequestObject.new # UpdateManualAccountRequestObject | 
 
 begin
   # Update an existing manual account

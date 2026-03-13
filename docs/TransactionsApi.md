@@ -182,7 +182,7 @@ end
 
 api_instance = LunchMoney::TransactionsApi.new
 id = 2112140361 # Integer | ID of the transaction to update
-update_transaction_object = TODO # UpdateTransactionObject | 
+update_transaction_object = LunchMoney::UpdateTransactionObject.new # UpdateTransactionObject | 
 opts = {
   update_balance: true # Boolean | Set this to `false` to skip updating the transaction's associated account balance. Default behavior is to update balances.
 }

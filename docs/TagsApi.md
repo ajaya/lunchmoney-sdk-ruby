@@ -36,7 +36,7 @@ LunchMoney.configure do |config|
 end
 
 api_instance = LunchMoney::TagsApi.new
-create_tag_request_object = TODO # CreateTagRequestObject | 
+create_tag_request_object = LunchMoney::CreateTagRequestObject.new({name: 'name_example'}) # CreateTagRequestObject | 
 
 begin
   # Create a new tag
@@ -333,7 +333,7 @@ end
 
 api_instance = LunchMoney::TagsApi.new
 id = 94319 # Integer | ID of the tag to update
-update_tag_request_object = TODO # UpdateTagRequestObject | 
+update_tag_request_object = LunchMoney::UpdateTagRequestObject.new # UpdateTagRequestObject | 
 
 begin
   # Update an existing tag

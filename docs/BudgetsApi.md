@@ -180,7 +180,7 @@ LunchMoney.configure do |config|
 end
 
 api_instance = LunchMoney::BudgetsApi.new
-upsert_budget_request_object = TODO # UpsertBudgetRequestObject | 
+upsert_budget_request_object = LunchMoney::UpsertBudgetRequestObject.new({start_date: Date.today, category_id: 37, amount: nil}) # UpsertBudgetRequestObject | 
 
 begin
   # Upsert budget

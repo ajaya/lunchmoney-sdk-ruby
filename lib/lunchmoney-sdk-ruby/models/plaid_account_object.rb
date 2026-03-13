@@ -501,10 +501,6 @@ module LunchMoney
     # Custom attribute writer method with validation
     # @param [Object] mask Value to be assigned
     def mask=(mask)
-      if mask.nil?
-        fail ArgumentError, 'mask cannot be nil'
-      end
-
       @mask = mask
     end
 

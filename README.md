@@ -9,6 +9,13 @@ Auto-generated from the official [OpenAPI specification](https://lunchmoney.dev)
 
 ## Installation
 
+The SDK supports Ruby 3.4 and newer. Development and releases use Ruby 4.0.9
+(see `.ruby-version`) and Bundler 4.0.24. From a checkout, run `bundle install`
+and `bundle exec rake` to run the test suite. CI tests Ruby 3.4 and 4.0.9.
+
+An optional [MCP server](docs/mcp.md) provides 16 read-only tools over stdio
+or Streamable HTTP, using the current MCP protocol and supporting Claude and Codex.
+
 Add to your Gemfile:
 
 ```ruby

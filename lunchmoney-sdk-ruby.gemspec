@@ -35,7 +35,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'pry-byebug', '~> 3.12'
   s.add_development_dependency 'rubocop', '~> 1.85'
 
-  s.files         = Dir["lib/**/*", "docs/**/*", "LICENSE", "README.md", "CHANGELOG.md"].select { |f| File.file?(f) }
-  s.executables   = []
+  s.files         = Dir["lib/**/*", "docs/**/*", "bin/*", "openapi/lunchmoney-v2.json", "LICENSE", "README.md", "CHANGELOG.md"].select { |f| File.file?(f) }
+  s.executables   = ['lunchmoney-mcp']
   s.require_paths = ["lib"]
 end
